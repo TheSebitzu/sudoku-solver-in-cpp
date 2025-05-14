@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <bits/stdc++.h>
 using namespace std;
 
 void printBoard(int board[9][9], int ROW = -1, int COL = -1, bool bt = false, bool timeline = false)
@@ -158,27 +159,96 @@ bool solveSudoku(int board[9][9], bool color = false, bool timeline = false)
     return true;
 }
 
+bool solveSudokuRandom(int board[9][9])
+{
+    for (int row = 0; row < 9; row++)
+    {
+        for (int col = 0; col < 9; col++)
+        {
+            // Empty cell
+            if (board[row][col] == 0)
+            {
+                int numbers[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+                
+                // Shuffle the numbers
+                unsigned seed = random_device{}();
+                shuffle(numbers, numbers + 9, default_random_engine(seed));
+
+                // Try every number
+                for (int i = 0; i < 9; i++)
+                {
+                    int num = numbers[i];
+                    
+                    if (isValid(board, row, col, num))
+                    {
+                        // Put it in
+                        board[row][col] = num;
+                        
+                        // Return true if this lead to the solve
+                        if (solveSudoku(board))
+                        {
+                            return true;
+                        }
+
+                        // Undo if it doesnt lead to solve
+                        board[row][col] = 0;
+                        
+                    }
+                }
+                // After we try 1-9, if it didnt return true, there is no solution
+                return false;
+            }
+        }
+    }
+    // Return true if all cells are filled (corectly)
+    return true;
+}
+
+void generateSudoku(int board[9][9], int difficulty)
+{
+    for (int row = 0; row < 9; row++)
+    {
+        for (int col = 0; col < 9; col++)
+        {
+            // Fill the board with 0s
+            board[row][col] = 0;
+        }
+    }   
+
+    // Full solved board
+    solveSudokuRandom(board);
+
+    // Remove some numbers to create the puzzle
+    int count = 0;
+    while (count < difficulty)
+    {
+        int row = rand() % 9;
+        int col = rand() % 9;
+
+        // Remove the number
+        if (board[row][col] != 0)
+        {
+            board[row][col] = 0;
+            count++;
+        }
+    }
+
+    cout << "Generated Sudoku:" << endl;
+    printBoard(board);
+    cout << endl;
+}
+
 int main()
 {
-    
-    int board[9][9] = {
-        {4, 0, 0,    0, 0, 0,    0, 0, 0},
-        {0, 0, 0,    2, 1, 8,    0, 7, 0},
-        {7, 0, 0,    0, 9, 0,    0, 0, 2},
+    int board[9][9];
+    generateSudoku(board, 20);    
 
-        {0, 0, 6,    0, 3, 0,    8, 0, 4},
-        {1, 0, 0,    0, 0, 0,    0, 2, 0},
-        {0, 0, 5,    0, 0, 7,    0, 0, 0},
-
-        {0, 1, 0,    0, 6, 0,    0, 0, 0},
-        {0, 6, 0,    0, 8, 5,    0, 0, 0},
-        {0, 0, 9,    0, 0, 0,    0, 0, 1}};
-
-    // We use true and true for color and timeline
-    if (solveSudoku(board, true, true))
+    // Can use true and true for color and timeline
+    // solveSudoku(board, true, true);
+    if (solveSudoku(board))
     {
+        cout << endl << "Solved sudoku: " << endl;
         printBoard(board);
-        cout << endl << "Solved!";
     }
     else
     {
